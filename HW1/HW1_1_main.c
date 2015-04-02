@@ -1,6 +1,3 @@
-// Andrew Beir
-// ME 433 April 1, 2015
-// Homework 1 Code
 #include<xc.h> // processor SFR definitions
 #include<sys/attribs.h> // __ISR macro
 #include <stdio.h>
@@ -15,7 +12,7 @@
 #pragma config CP = OFF // no code protect - DONE
 
 // DEVCFG1
-#pragma config FNOSC = PRIPLL // use primary oscillator with pll - DONE
+#pragma config FNOSC = FRCPLL // use primary oscillator with pll - DONE
 #pragma config FSOSCEN = OFF // turn off secondary oscillator - DONE
 #pragma config IESO = OFF // no switching clocks - DONE
 #pragma config POSCMOD = HS // high speed crystal mode - DONE
@@ -32,7 +29,7 @@
 #pragma config FPLLMUL = MUL_20 // multiply clock after FPLLIDIV - DONE
 #pragma config UPLLIDIV = DIV_2 // divide clock after FPLLMUL - DONE
 #pragma config UPLLEN = ON // USB clock on - DONE
-#pragma config FPLLODIV = DIV_1 // divide clock by 1 to output on pin - DONE
+#pragma config FPLLODIV = DIV_2 // divide clock by 2 to output on pin - DONE
 
 // DEVCFG3
 #pragma config USERID = 0 // some 16bit userid
@@ -61,19 +58,31 @@ int main() {
         DDPCONbits.JTAGEN = 0;
         __builtin_enable_interrupts();
 
+        
+        
+        
+        ANSELBbits.ANSB13 = 0;          // digital
+        ANSELBbits.ANSB15 = 0;          // digital
+
     // set up USER pin as input
-        ANSELBbits.ANSB13 = 0; // digital
-        TRISBbits.TRISB13 = 1; // input
+        TRISBbits.TRISB13 = 1;          // input
 
     // set up LED1 pin as a digital output
-        TRISBbits.TRISB7 = 0; // output
+        TRISBbits.TRISB7 = 0;           // output
 
     // set up LED2 as OC1 using Timer2 at 1kHz
-        RPB15Rbits.RPB15R = 0b0101;
-        PR2 = 39999;
+        RPB15Rbits.RPB15R = 0b0101;     // B15 to OC1
+        T2CONbits.TCKPS = 2;            // Timer2 prescaler 1:4
+        PR2 = 19999;
         TMR2 = 0;
+        OC1RS = 10000;
+        OC1CONbits.OCTSEL = 0;
+        OC1CONbits.OCM = 0b110;
         T2CONbits.ON = 1;
         OC1CONbits.ON = 1;
+
+
+
 
     // set up A0 as AN0
         ANSELAbits.ANSA0 = 1;
@@ -83,18 +92,18 @@ int main() {
 
     while (1) {
         _CP0_SET_COUNT(0); // set core timer to 0, remember it counts at half the CPU clock
-        LATBINV = 0x80; // invert pin B7
+        LATBINV = 0b010000000; // invert pin B7
 
         // wait for half a second, setting LED brightness to pot angle while waiting
         while (_CP0_GET_COUNT() < 20000000) {
             int val = readADC();
-            OC1RS = val * 10000;
+            OC1RS = val * 19999/1023;
 
             if (PORTBbits.RB13 == 1) {
                 // nothing
             }
             else {
-                LATBINV = 0x80; // invert pin B7
+                LATBINV = 0b010000000; // invert pin B7
             }
         }
     }
