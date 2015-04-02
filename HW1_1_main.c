@@ -1,3 +1,6 @@
+// Andrew Beir
+// ME 433 April 1, 2015
+// Homework 1 Code
 #include<xc.h> // processor SFR definitions
 #include<sys/attribs.h> // __ISR macro
 #include <stdio.h>
