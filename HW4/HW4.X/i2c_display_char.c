@@ -109,6 +109,9 @@ static const char ASCII[96][5] = {
 };
 
 void setup();
+void wait();
+int readADC();
+
 void display_character(char acter[], int row, int col);
 int getbit (int index, int j, int k);
 
@@ -129,6 +132,8 @@ int main(int argc, const char * argv[]) {
     */
 
     display_character(str,28,32);
+
+    wait();
 
 }
 
@@ -197,4 +202,32 @@ void setup() {
     AD1CON3bits.ADCS = 3;
     AD1CHSbits.CH0SA = 0;
     AD1CON1bits.ADON = 1;
+}
+void wait() {
+   while (1) {
+        _CP0_SET_COUNT(0);
+        LATBINV = 0b010000000;
+        while (_CP0_GET_COUNT() < 20000000) {
+            int val = readADC();
+            OC1RS = val * 19999/1023;
+
+            if (PORTBbits.RB13 == 1) {}
+            else { LATBINV = 0b010000000; }
+        }
+    }
+}
+int readADC() {
+    int elapsed = 0;
+    int finishtime = 0;
+    int sampletime = 20;
+    int a = 0;
+
+    AD1CON1bits.SAMP = 1;
+    elapsed = _CP0_GET_COUNT();
+    finishtime = elapsed + sampletime;
+    while (_CP0_GET_COUNT() < finishtime) {}
+    AD1CON1bits.SAMP = 0;
+    while (!AD1CON1bits.DONE) {}
+    a = ADC1BUF0;
+    return a;
 }
