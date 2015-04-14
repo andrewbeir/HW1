@@ -1,13 +1,13 @@
-//  Andrew Beir 4/11/15
+//
+//  Created by Andrew on 4/11/15.
+//  Copyright (c) 2015 Andrew. All rights reserved.
+//
 
-#include <xc.h>
-#include <sys/attribs.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "i2c_master_int.h"
-#include "i2c_display.h"
-#include "configs.h"
+// #include "i2c_master_int.h"
+// #include "i2c_display.h"
 
 static const char ASCII[96][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00} // 20  (space)
@@ -70,7 +70,7 @@ static const char ASCII[96][5] = {
     ,{0x07, 0x08, 0x70, 0x08, 0x07} // 59 Y
     ,{0x61, 0x51, 0x49, 0x45, 0x43} // 5a Z
     ,{0x00, 0x7f, 0x41, 0x41, 0x00} // 5b [
-    ,{0x02, 0x04, 0x08, 0x10, 0x20} // 5c ¥
+    ,{0x02, 0x04, 0x08, 0x10, 0x20} // 5c Â¥
     ,{0x00, 0x41, 0x41, 0x7f, 0x00} // 5d ]
     ,{0x04, 0x02, 0x01, 0x02, 0x04} // 5e ^
     ,{0x40, 0x40, 0x40, 0x40, 0x40} // 5f _
@@ -106,95 +106,53 @@ static const char ASCII[96][5] = {
     ,{0x00, 0x41, 0x36, 0x08, 0x00} // 7d }
     ,{0x10, 0x08, 0x08, 0x10, 0x08} // 7e ?
     ,{0x00, 0x06, 0x09, 0x09, 0x06} // 7f ?
-};
-
-void setup();
+}; // end char ASCII[96][5]
 void display_character(char acter[], int row, int col);
 int getbit (int index, int j, int k);
 
 int main(int argc, const char * argv[]) {
-
-    setup();
-    display_init();
-    
-    char str[] = "Hello world 1337!";
-
-    /*
+    char str[] = "";
+    int r = 0;
+    int c = 0;
     printf("Enter a string: ");
     scanf("%99[^\n]",str);
     printf("Enter row position: ");
     scanf("%d", &r);
     printf("Enter col position: ");
     scanf("%d", &c);
-    */
-
-    display_character(str,28,32);
-
+    display_character(str,r,c);
+    return(0);
 }
 
 void display_character(char acter[], int row, int col) {
-
-    if (row > 64 || col > 128) {
-        acter = "Error: pixel position    does not exist.";
-        row = 0;
-        col = 0;
-    }
-
+    // i2c_master_setup();
+    
     int len = (int) strlen(acter);
-
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    int ccount = 0;
-    int rcount = 0;
-
-    for (i = 0; i < len; i++) {                 // loop through all characters
+    // check pixel location
+    
+    for (int i = 0; i < len; i++) {             // loop through all characters
         int index = (int) acter[i] - 0x20;      // find character in ASCII[][]
-        for (j = 0; j < 5; j++) {               // loop through columns
-            for (k = 0; k < 8; k++) {           // loop through rows
-                int bit = getbit(index,j,k);
+        for (int j = 0; j < 5; j++) {           // loop through columns
+            for (int k = 0; k < 8; k++) {       // loop through rows
+                int bit = getbit(index,j,k);    // return specific bit from char index, j, k
                 if (bit) {
-                    display_pixel_set((k+rcount*8+row),(j+ccount*5+col),1);
+                    printf("0");
+                    // display_pixel_set(k,j,1);
                 }
                 else {
-                    display_pixel_set((k+rcount*8+row),(j+ccount*5+col),0);
+                    printf(" ");
+                    // display_pixel_set(k,j,0);
                 }
             }
+            printf("\n");
         }
-        ccount++;
-        if (ccount+col/5 == 25) {               // wrap text to next line
-            rcount++; ccount = 0;
-        }
+        printf("\n\n");
     }
-    display_draw();
+    // display_draw();
 }
 
-int getbit(int index, int j, int k) {           // return bit k of the jth byte
+int getbit(int index, int j, int k) {
     return (ASCII[index][j] & (1 << (k-1))) >> (k-1);
 }
 
-void setup() {
-    __builtin_disable_interrupts();
-    __builtin_mtc0(_CP0_CONFIG, _CP0_CONFIG_SELECT, 0xa4210583);
-    BMXCONbits.BMXWSDRM = 0x0;
-    INTCONbits.MVEC = 0x1;
-    DDPCONbits.JTAGEN = 0;
-    __builtin_enable_interrupts();
-    ANSELBbits.ANSB13 = 0;
-    ANSELBbits.ANSB15 = 0;
-    TRISBbits.TRISB13 = 1;
-    TRISBbits.TRISB7 = 0;
-    RPB15Rbits.RPB15R = 0b0101;
-    T2CONbits.TCKPS = 2;
-    PR2 = 19999;
-    TMR2 = 0;
-    OC1RS = 10000;
-    OC1CONbits.OCTSEL = 0;
-    OC1CONbits.OCM = 0b110;
-    T2CONbits.ON = 1;
-    OC1CONbits.ON = 1;
-    ANSELAbits.ANSA0 = 1;
-    AD1CON3bits.ADCS = 3;
-    AD1CHSbits.CH0SA = 0;
-    AD1CON1bits.ADON = 1;
-}
+
