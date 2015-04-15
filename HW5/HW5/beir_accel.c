@@ -1,5 +1,3 @@
-//  Andrew Beir 4/11/15
-
 #include <xc.h>
 #include <sys/attribs.h>
 #include <stdio.h>
@@ -8,6 +6,7 @@
 #include "i2c_master_int.h"
 #include "i2c_display.h"
 #include "configs.h"
+#include "accel.h"
 
 static const char ASCII[96][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00} // 20  (space)
@@ -109,75 +108,61 @@ static const char ASCII[96][5] = {
 };
 
 void setup();
+void reset_screen();
 void wait();
 int readADC();
 
 void display_character(char acter[], int row, int col);
 int getbit (int index, int j, int k);
 
-int main(int argc, const char * argv[]) {
+int main(int argc, char** argv) {
 
     setup();
-    display_init();
+    reset_screen();
+
+    acc_setup();
+    acc_write_register(0x21,0x00);
     
-    char str[] = "Hello world 1337!";
-    int r = 28;
-    int c = 32;
+    short xyz[3];
+    short x; short x0; short x1; short half_x = 63;
+    short y; short y0; short y1; short half_y = 31;
+    int ii;
 
-    /*
-    printf("Enter a string: ");
-    scanf("%99[^\n]",str);
-    printf("Enter row position: ");
-    scanf("%d", &r);
-    printf("Enter col position: ");
-    scanf("%d", &c);
-    */
+    display_init();
 
-    display_character(str,r,c);
+    char str[201];
+    while (1)
+    {
+        acc_read_register(OUT_X_L_A, (unsigned char *) xyz, 6);
+        x = (127*xyz[0])/32768;
+        y = (63*xyz[1])/32768;
 
-    wait();
+        if (x > 0)  { x0 = half_x; x1 = half_x + x; }
+        else        { x0 = half_x + x; x1 = half_x; }
 
-}
+        if (y > 0)  { y0 = half_y; y1 = half_y + y; }
+        else        { y0 = half_y + y; y1 = half_y; }
 
-void display_character(char acter[], int row, int col) {
+        display_clear();
 
-    if (row > 64 || col > 128) {
-        acter = "Error: pixel position    does not exist.";
-        row = 0;
-        col = 0;
-    }
-
-    int len = (int) strlen(acter);
-
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    int ccount = 0;
-    int rcount = 0;
-
-    for (i = 0; i < len; i++) {                 // loop through all characters
-        int index = (int) acter[i] - 0x20;      // find character in ASCII[][]
-        for (j = 0; j < 5; j++) {               // loop through columns
-            for (k = 0; k < 8; k++) {           // loop through rows
-                int bit = getbit(index,j,k);
-                if (bit) {
-                    display_pixel_set((k+rcount*8+row),(j+ccount*5+col),1);
-                }
-                else {
-                    display_pixel_set((k+rcount*8+row),(j+ccount*5+col),0);
-                }
+        for (ii = 0; ii < 127; ii++) {
+            if ((ii > x0) && (ii < x1)) {
+                display_pixel_set(half_y,   ii, 1);
+                display_pixel_set(half_y+1, ii, 1);
             }
         }
-        ccount++;
-        if (ccount+col/5 == 25) {               // wrap text to next line
-            rcount++; ccount = 0;
-        }
-    }
-    display_draw();
-}
 
-int getbit(int index, int j, int k) {           // return bit k of the jth byte
-    return (ASCII[index][j] & (1 << (k-1))) >> (k-1);
+        for (ii = 0; ii < 63; ii++) {
+            if ((ii > y0) && (ii < y1)) {
+                display_pixel_set(ii, half_x,   1);
+                display_pixel_set(ii, half_x+1, 1);
+            }
+        }
+        display_draw();
+        //wait();
+    }
+    return (0);
+
 }
 
 void setup() {
@@ -206,8 +191,29 @@ void setup() {
     AD1CON1bits.ADON = 1;
 }
 
+void reset_screen() {
+    ANSELBbits.ANSB2 = 0;
+    TRISBbits.TRISB2 = 0;
+
+    LATBbits.LATB2 = 0;
+    _CP0_SET_COUNT(0);
+    int elapsed = 0;
+
+    while (elapsed<2000000) {
+        elapsed = _CP0_GET_COUNT();
+    }
+
+    LATBbits.LATB2 = 1;
+    _CP0_SET_COUNT(0);
+    elapsed = 0;
+
+    while (elapsed<2000000){
+        elapsed = _CP0_GET_COUNT();
+    }
+}
+
 void wait() {
-   while (1) {
+    while (1) {
         _CP0_SET_COUNT(0);
         LATBINV = 0b010000000;
         while (_CP0_GET_COUNT() < 20000000) {
@@ -235,3 +241,4 @@ int readADC() {
     a = ADC1BUF0;
     return a;
 }
+
