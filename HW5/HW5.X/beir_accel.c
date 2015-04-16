@@ -126,13 +126,16 @@ int main(int argc, char** argv) {
     short xyz[3];
     short x; short x0; short x1; short half_x = 63;
     short y; short y0; short y1; short half_y = 31;
-    int ii;
+    short i; short j;
+    short bar_width = 3;
 
     display_init();
 
-    char str[201];
+    char str[] = "BEIR";
+
     while (1)
     {
+
         acc_read_register(OUT_X_L_A, (unsigned char *) xyz, 6);
         x = (127*xyz[0])/32768;
         y = (63*xyz[1])/32768;
@@ -145,20 +148,22 @@ int main(int argc, char** argv) {
 
         display_clear();
 
-        for (ii = 0; ii < 127; ii++) {
-            if ((ii > x0) && (ii < x1)) {
-                display_pixel_set(half_y,   ii, 1);
-                display_pixel_set(half_y+1, ii, 1);
+        for (i = 0; i < 127; i++) {
+            if ((i > x0) && (i < x1)) {
+                for (j = 0; j < bar_width; j++) {
+                    display_pixel_set(half_y + j, i, 1);
+                }
             }
         }
 
-        for (ii = 0; ii < 63; ii++) {
-            if ((ii > y0) && (ii < y1)) {
-                display_pixel_set(ii, half_x,   1);
-                display_pixel_set(ii, half_x+1, 1);
+        for (i = 0; i < 63; i++) {
+            if ((i > y0) && (i < y1)) {
+                for (j = 0; j < bar_width; j++) {
+                    display_pixel_set(i, half_x + j, 1);
+                }
             }
         }
-        display_draw();
+        display_character(str,0,0);
         //wait();
     }
     return (0);
@@ -240,5 +245,46 @@ int readADC() {
     while (!AD1CON1bits.DONE) {}
     a = ADC1BUF0;
     return a;
+}
+
+void display_character(char acter[], int row, int col) {
+
+    if (row > 64 || col > 128) {
+        acter = "Error: pixel position    does not exist.";
+        row = 0;
+        col = 0;
+    }
+
+    int len = (int) strlen(acter);
+
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    int ccount = 0;
+    int rcount = 0;
+
+    for (i = 0; i < len; i++) {                 // loop through all characters
+        int index = (int) acter[i] - 0x20;      // find character in ASCII[][]
+        for (j = 0; j < 5; j++) {               // loop through columns
+            for (k = 0; k < 8; k++) {           // loop through rows
+                int bit = getbit(index,j,k);
+                if (bit) {
+                    display_pixel_set((k+rcount*8+row),(j+ccount*5+col),1);
+                }
+                else {
+                    display_pixel_set((k+rcount*8+row),(j+ccount*5+col),0);
+                }
+            }
+        }
+        ccount++;
+        if (ccount+col/5 == 25) {               // wrap text to next line
+            rcount++; ccount = 0;
+        }
+    }
+    display_draw();
+}
+
+int getbit(int index, int j, int k) {           // return bit k of the jth byte
+    return (ASCII[index][j] & (1 << (k-1))) >> (k-1);
 }
 
