@@ -111,7 +111,6 @@ void setup();
 void reset_screen();
 void wait();
 int readADC();
-
 void display_character(char acter[], int row, int col);
 int getbit (int index, int j, int k);
 
@@ -133,9 +132,7 @@ int main(int argc, char** argv) {
 
     char str[] = "BEIR";
 
-    while (1)
-    {
-
+    while (1) {
         acc_read_register(OUT_X_L_A, (unsigned char *) xyz, 6);
         x = (127*xyz[0])/32768;
         y = (63*xyz[1])/32768;
@@ -287,4 +284,3 @@ void display_character(char acter[], int row, int col) {
 int getbit(int index, int j, int k) {           // return bit k of the jth byte
     return (ASCII[index][j] & (1 << (k-1))) >> (k-1);
 }
-
