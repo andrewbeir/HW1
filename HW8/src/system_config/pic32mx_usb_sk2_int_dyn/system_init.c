@@ -420,14 +420,6 @@ const SYS_DEVCON_INIT sysDevconInit =
 
 void SYS_Initialize ( void* data )
 {
-
-    ANSELBbits.ANSB2 = 0;
-    TRISBbits.TRISB2 = 0;
-    LATBbits.LATB2 = 1;
-    ANSELBbits.ANSB3 = 0;
-    ANSELBbits.ANSB13 = 0;
-    ANSELBbits.ANSB14 = 0;
-    ANSELBbits.ANSB15 = 0;
     
     /* Core Processor Initialization */
     SYS_CLK_Initialize( NULL );
@@ -460,9 +452,16 @@ void SYS_Initialize ( void* data )
     /* Initialize the Application */
     APP_Initialize();
 
+    ANSELBbits.ANSB2 = 0;
+    TRISBbits.TRISB2 = 0;
+    LATBbits.LATB2 = 0;
+    ANSELBbits.ANSB3 = 0;
+    ANSELBbits.ANSB13 = 0;
+    ANSELBbits.ANSB14 = 0;
+    ANSELBbits.ANSB15 = 0;
+
 }
 
 /*******************************************************************************
  End of File
 */
-
