@@ -175,4 +175,7 @@ build/pic32mx_usb_sk2_int_dyn/production/_ext/1774247193/system_init.o:  \
  ../../../../../../framework/usb/usb_device.h  \
  ../../../../../../framework/usb/usb_hid.h  \
 ../src/app.h  \
- ../src/system_config/pic32mx_usb_sk2_int_dyn/system_definitions.h 
+ ../src/system_config/pic32mx_usb_sk2_int_dyn/system_definitions.h  \
+ ../src/accel.h  \
+../src/i2c_display.h  \
+../src/i2c_master_int.h 

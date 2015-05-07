@@ -51,6 +51,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_definitions.h"
 #include "app.h"
 #include "xc.h"
+#include "accel.h"
+#include "i2c_display.h"
+#include "i2c_master_int.h"
+#include "string.h"
 
 
 // ****************************************************************************
@@ -84,9 +88,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #pragma config USERID = 0
 #pragma config PMDL1WAY = ON
 #pragma config IOL1WAY = ON
-#pragma config FUSBIDIO = ON
-#pragma config FVBUSONIO = ON
-
+#pragma config FUSBIDIO = OFF
+#pragma config FVBUSONIO = OFF
 
 // *****************************************************************************
 // *****************************************************************************
@@ -459,6 +462,19 @@ void SYS_Initialize ( void* data )
     ANSELBbits.ANSB13 = 0;
     ANSELBbits.ANSB14 = 0;
     ANSELBbits.ANSB15 = 0;
+
+    _CP0_SET_COUNT(0);
+    int elapsed = 0;
+    while (elapsed<2000000){elapsed = _CP0_GET_COUNT();}
+    LATBbits.LATB2 = 1;
+    _CP0_SET_COUNT(0);
+    elapsed = 0;
+    while (elapsed<2000000){elapsed = _CP0_GET_COUNT();}
+
+    display_init();
+    display_clear();
+    acc_setup();
+    acc_write_register(0x21,0x00);
 
 }
 

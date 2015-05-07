@@ -355,6 +355,8 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event, void * eventData, uintptr
 void APP_Initialize ( void )
 {
     /* Place the App state machine in its initial state. */
+
+
     appData.state = APP_STATE_INIT;
     
     appData.usbDevHandle = USB_DEVICE_HANDLE_INVALID;
@@ -438,15 +440,14 @@ void APP_Tasks (void )
                         /* Toggle on board LED1 to LED2. */
                         BSP_LEDOn (APP_USB_LED_7);
                         BSP_LEDOn (APP_USB_LED_15);
-                        
-                        reset_screen();
                         char str[100];
+                        display_clear();
 
                         int row = receiveDataBuffer[2];
                         int i;
                         //sprintf(str, "%s", 99, receiveDataBuffer[]);
                         for (i = 0; i < 100; i++)
-                          str[i] = receiveDataBuffer[4+i];
+                          str[i] = receiveDataBuffer[i+4];
                         display_character(str, row, 0);
 
                         appData.hidDataReceived = false;
@@ -491,7 +492,7 @@ void APP_Tasks (void )
                             }
                             else
                             {
-                                appData.transmitDataBuffer[0] = 0x81;
+                                appData.transmitDataBuffer[0] = 0x80;
                                 appData.transmitDataBuffer[1] = 0x00;
                                 appData.transmitDataBuffer[2] = 0x00;
                                 appData.transmitDataBuffer[3] = 0x00;
@@ -500,14 +501,14 @@ void APP_Tasks (void )
                                 appData.transmitDataBuffer[6] = 0x00;
                             }
 
-                            /*if( BSP_SwitchStateGet(APP_USB_SWITCH_1) == BSP_SWITCH_STATE_PRESSED )
+                            if( BSP_SwitchStateGet(APP_USB_SWITCH_1) == BSP_SWITCH_STATE_PRESSED )
                             {
                                 appData.transmitDataBuffer[1] = 0x00;
                             }
                             else
                             {
                                 appData.transmitDataBuffer[1] = 0x01;
-                            }*/
+                            }
 
                             appData.hidDataTransmitted = false;
 
@@ -581,7 +582,7 @@ int getbit(int index, int j, int k) {           // return bit k of the jth byte
     return (ASCII[index][j] & (1 << (k-1))) >> (k-1);
 }
 
-void reset_screen () {
+/*void reset_screen () {
     ANSELBbits.ANSB2 = 0;
     TRISBbits.TRISB2 = 0;
     LATBbits.LATB2 = 0;
@@ -597,7 +598,7 @@ void reset_screen () {
     acc_write_register(0x21,0x00);
     display_init();
     display_clear();
-}
+}*/
  
 
 /*******************************************************************************

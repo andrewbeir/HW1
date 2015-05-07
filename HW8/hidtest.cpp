@@ -1,3 +1,5 @@
+
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -58,7 +60,7 @@ int main(int argc, char* argv[])
     buf[1] = 0x80;
     buf[3] = row;
     for (i = 0; i < MAX_MSG; i++)
-        buf[5+i] = message[i];
+        buf[i+5] = message[i];
     res = hid_write(handle, buf, 65);
     
     // Request state (cmd 0x81). The first byte is the report number (0x0).
@@ -80,11 +82,11 @@ int main(int argc, char* argv[])
         buf[1] = 0x81;
         res = hid_write(handle, buf, 65);
         res = hid_read(handle, buf, 65);
-        if (!((buf[5] == 0) && (buf[6] == 0)))
+        if (buf[0] == 0x81)
         {
-            accX[j] = (short)((buf[1] << 8) | (buf[2]));
-            accY[j] = (short)((buf[3] << 8) | (buf[4]));
-            accZ[j] = (short)((buf[5] << 8) | (buf[6]));
+            accX[j] = ((buf[1] << 8) | (buf[2]));
+            accY[j] = ((buf[3] << 8) | (buf[4]));
+            accZ[j] = ((buf[5] << 8) | (buf[6]));
             j++;
         }
     }
@@ -93,12 +95,17 @@ int main(int argc, char* argv[])
     wprintf(L"Saving to file\n");
     FILE *ofp;
     ofp = fopen("accels.txt", "w");
-    for (i=0; i<DATA_PTS; i++)
-        fwprintf(ofp,L"X: %d  Y: %d  Z: %d\r\n",accX[i],accY[i],accZ[i]);
+    for (i=0; i<DATA_PTS; i++) {
+        wprintf(L"X: %d  Y: %d  Z: %d\r\n",accX[i],accY[i],accZ[i]);
+        fwprintf(ofp,L"%d, %d, %d\r\n",accX[i],accY[i],accZ[i]);
+    }
     fclose(ofp);
     
     // Finalize the hidapi library
     res = hid_exit();
+    
+    for (i = 0; i<65; i++)
+        buf[i] = 0;
     
     return 0;
 }
