@@ -9,7 +9,7 @@
 
 #define MAX_STR 255
 #define MAX_MSG 100
-#define DATA_PTS 200
+#define DATA_PTS 2000
 
 int main(int argc, char* argv[])
 {
