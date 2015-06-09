@@ -449,19 +449,27 @@ void APP_Tasks ( void )
                     rxbuffer[i] = appData.readBuffer[i];
                 }
                 sscanf(rxbuffer,"%d %d",&num1,&num2);
-                if (num1 < 300) { // turn right
-                    OC1RS = 2500;
-                    OC2RS = 7500;
+                if (num1 < 150) { // turn hard right
+                    OC1RS = 5000;
+                    OC2RS = 17500;
+                }
+                else if (num1 < 290) { // turn right
+                    OC1RS = 10000;
+                    OC2RS = 17500;
 
                 }
-                else if (num1 > 340) { // turn left
-                    OC1RS = 7500;
-                    OC2RS = 2500;
+                else if (num1 > 490) { // turn hard left
+                    OC1RS = 17500;
+                    OC2RS = 5000;
+                }
+                else if (num1 > 350) { // turn left
+                    OC1RS = 17500;
+                    OC2RS = 10000;
 
                 }
                 else { // drive straight
-                    OC1RS = 7500;
-                    OC2RS = 7500;
+                    OC1RS = 17500;
+                    OC2RS = 17500;
 
                 }
                 

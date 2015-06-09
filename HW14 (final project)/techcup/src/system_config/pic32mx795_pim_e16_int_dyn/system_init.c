@@ -521,11 +521,11 @@ void setup() {
     PR2 = 19999;
     TMR2 = 0;
 
-    OC1RS = 7500;
+    OC1RS = 0;
     OC1CONbits.OCTSEL = 0;
     OC1CONbits.OCM = 0b110;
 
-    OC2RS = 7500;
+    OC2RS = 0;
     OC2CONbits.OCTSEL = 0;
     OC2CONbits.OCM = 0b110;
 
